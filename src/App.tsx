@@ -4,8 +4,10 @@ import { newId } from "./lib/id";
 import { computeStreaks, isoToday } from "./lib/streaks";
 import { REWARDS, xpForCompletion, levelFromXp } from "./lib/rewards";
 import Heatmap from "./components/Heatmap";
+import { getTheme, applyTheme, type Theme } from "./lib/theme";
 
 export default function App() {
+  const [theme, setTheme] = useState<Theme>(getTheme());
   const [tasks, setTasks] = useState<Task[]>([]);
   const [completions, setCompletions] = useState<Completion[]>([]);
   const [draft, setDraft] = useState("");
@@ -24,9 +26,20 @@ export default function App() {
   setUnlockedRewards(metaRewards?.value ?? []);
 }
 
+useEffect(() => {
+  applyTheme(theme);
+}, []);
+
   useEffect(() => {
     loadAll();
   }, []);
+
+  function toggleTheme() {
+  const next = theme === "dark" ? "light" : "dark";
+  applyTheme(next);
+  setTheme(next);
+}
+
   function showToast(msg: string) {
   setToast(msg);
   setTimeout(() => setToast(null), 3000);
@@ -87,6 +100,21 @@ export default function App() {
   return (
   <div style={{ padding: 20, fontFamily: "sans-serif" }}>
     <h1>Zeal 🔥</h1>
+    <button
+  onClick={toggleTheme}
+  style={{
+    background: "var(--surface)",
+    border: "1px solid var(--border)",
+    color: "var(--text)",
+    borderRadius: 999,
+    padding: "6px 14px",
+    cursor: "pointer",
+    marginBottom: 16,
+    fontSize: 13
+  }}
+>
+  {theme === "dark" ? "☀️ Light" : "🌙 Dark"}
+</button>
 
     <form onSubmit={addTask}>
       <input
@@ -127,8 +155,8 @@ export default function App() {
         return (
           <>
             <div>Level {level} — {xpIntoLevel}/{xpForNextLevel} XP</div>
-            <div style={{ background: "#1c2128", borderRadius: 4, height: 8, marginTop: 4, width: 300 }}>
-              <div style={{ background: "#39d353", width: `${pct}%`, height: "100%", borderRadius: 4, transition: "width .3s" }} />
+            <div style={{ background: "var(--surface-2)", borderRadius: 4, height: 8, marginTop: 4, width: 300 }}>
+              <div style={{ background: "var(--green-hi)", width: `${pct}%`, height: "100%", borderRadius: 4, transition: "width .3s" }} />
             </div>
           </>
         );
@@ -144,12 +172,12 @@ export default function App() {
           return (
             <div key={r.id} style={{
               padding: "8px 12px", borderRadius: 8, fontSize: 13,
-              background: unlocked ? "#0e4429" : "#1c2128",
-              border: `1px solid ${unlocked ? "#39d353" : "#30363d"}`,
+              background: unlocked ? "var(--green-lo)" : "var(--surface-2)",
+              border: `1px solid ${unlocked ? "var(--green-hi)" : "var(--border)"}`,
               opacity: unlocked ? 1 : 0.5
             }}>
               {unlocked ? "🏆" : "🔒"} {r.title}
-              <div style={{ fontSize: 11, color: "#8b949e" }}>{r.desc}</div>
+              <div style={{ fontSize: 11, color: "var(--muted)" }}>{r.desc}</div>
             </div>
           );
         })}
@@ -160,7 +188,7 @@ export default function App() {
     {toast && (
       <div style={{
         position: "fixed", bottom: 24, left: "50%", transform: "translateX(-50%)",
-        background: "#161b22", border: "1px solid #39d353", color: "#e6edf3",
+        background: "var(--surface)", border: "1px solid var(--green-hi)", color: "var(--text)",
         padding: "10px 20px", borderRadius: 999, fontSize: 14, fontWeight: 600
       }}>
         {toast}
