@@ -97,73 +97,25 @@ export default function App() {
         <button type="submit">Add</button>
       </form>
 
-      <div style={{ marginTop: 16 }}>
-  {tasks.map((t) => {
-    const dates = completions.filter((c) => c.taskId === t.id).map((c) => c.date);
-    const { current, best } = computeStreaks(dates);
-    const doneToday = dates.includes(isoToday());
-    return (
-      <div key={t.id} style={{ marginBottom: 20 }}>
-        <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <input
-            type="checkbox"
-            checked={doneToday}
-            onChange={() => toggleToday(t.id)}
-          />
-          {t.title} — 🔥 {current} (best {best})
-        </label>
-        <Heatmap dates={dates} />
-      </div>
-    );
-  })}
-</div>
-      {/* XP bar */}
-<div style={{ marginTop: 24 }}>
-  {(() => {
-    const { level, xpIntoLevel, xpForNextLevel } = levelFromXp(xp);
-    const pct = Math.round((xpIntoLevel / xpForNextLevel) * 100);
-    return (
-      <>
-        <div>Level {level} — {xpIntoLevel}/{xpForNextLevel} XP</div>
-        <div style={{ background: "#1c2128", borderRadius: 4, height: 8, marginTop: 4, width: 300 }}>
-          <div style={{ background: "#39d353", width: `${pct}%`, height: "100%", borderRadius: 4, transition: "width .3s" }} />
-        </div>
-      </>
-    );
-  })()}
-</div>
-
-{/* Rewards */}
-<div style={{ marginTop: 24 }}>
-  <strong>Rewards</strong>
-  <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 8 }}>
-    {REWARDS.map((r) => {
-      const unlocked = unlockedRewards.includes(r.id);
-      return (
-        <div key={r.id} style={{
-          padding: "8px 12px", borderRadius: 8, fontSize: 13,
-          background: unlocked ? "#0e4429" : "#1c2128",
-          border: `1px solid ${unlocked ? "#39d353" : "#30363d"}`,
-          opacity: unlocked ? 1 : 0.5
-        }}>
-          {unlocked ? "🏆" : "🔒"} {r.title}
-          <div style={{ fontSize: 11, color: "#8b949e" }}>{r.desc}</div>
-        </div>
-      );
-    })}
-  </div>
-</div>
-
-{/* Toast */}
-{toast && (
-  <div style={{
-    position: "fixed", bottom: 24, left: "50%", transform: "translateX(-50%)",
-    background: "#161b22", border: "1px solid #39d353", color: "#e6edf3",
-    padding: "10px 20px", borderRadius: 999, fontSize: 14, fontWeight: 600
-  }}>
-    {toast}
-  </div>
-)}
+      <ul style={{ listStyle: "none", padding: 0 }}>
+        {tasks.map((t) => {
+          const dates = completions.filter((c) => c.taskId === t.id).map((c) => c.date);
+          const { current, best } = computeStreaks(dates);
+          const doneToday = dates.includes(isoToday());
+          return (
+            <li key={t.id} style={{ margin: "8px 0" }}>
+              <label>
+                <input
+                  type="checkbox"
+                  checked={doneToday}
+                  onChange={() => toggleToday(t.id)}
+                />
+                {" "}{t.title} — 🔥 {current} (best {best})
+              </label>
+            </li>
+          );
+        })}
+      </ul>
     </div>
   );
 }
