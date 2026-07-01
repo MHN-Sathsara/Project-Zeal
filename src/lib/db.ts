@@ -7,6 +7,11 @@ export interface Task {
   archived: boolean;
   createdAt: string;
 }
+export interface XpLog {
+  id: string; // taskId + date e.g. "abc123_2026-06-30"
+  taskId: string;
+  date: string;
+}
 
 export interface Completion {
   id: string;
@@ -22,13 +27,15 @@ class ZealDB extends Dexie {
   tasks!: Table<Task, string>;
   completions!: Table<Completion, string>;
   meta!: Table<Meta, string>;
+  xpLog!: Table<XpLog, string>;
 
   constructor() {
     super("zeal_db");
-    this.version(2).stores({
+    this.version(3).stores({
       tasks: "id, archived",
       completions: "id, taskId, date",
       meta: "key",
+      xpLog: "id, taskId, date"
     });
   }
 }

@@ -63,35 +63,42 @@ useEffect(() => {
   const existing = completions.find((c) => c.taskId === taskId && c.date === today);
 
   if (existing) {
+    // unchecking — remove completion but never remove XP
     await db.completions.delete(existing.id);
     await loadAll();
     return;
   }
 
+  // checking off
   await db.completions.add({ id: newId(), taskId, date: today });
 
-  // compute streak for this task after adding today
-  const allCompletions = await db.completions.toArray();
-  const taskDates = allCompletions.filter((c) => c.taskId === taskId).map((c) => c.date);
-  const { current } = computeStreaks(taskDates);
+  // only award XP if this task hasn't been awarded XP today already
+  const xpLogId = `${taskId}_${today}`;
+  const alreadyAwarded = await db.xpLog.get(xpLogId);
 
-  // award XP
-  const gained = xpForCompletion(current);
-  const newXp = xp + gained;
-  await db.meta.put({ key: "xp", value: newXp });
+  if (!alreadyAwarded) {
+    const allCompletions = await db.completions.toArray();
+    const taskDates = allCompletions.filter((c) => c.taskId === taskId).map((c) => c.date);
+    const { current } = computeStreaks(taskDates);
 
-  // check for newly unlocked rewards
-  const metaRewards = await db.meta.get("unlockedRewards");
-  const alreadyUnlocked: string[] = metaRewards?.value ?? [];
-  const newlyUnlocked = REWARDS.filter(
-    (r) => current >= r.streakRequired && !alreadyUnlocked.includes(r.id)
-  );
-  if (newlyUnlocked.length > 0) {
-    const updated = [...alreadyUnlocked, ...newlyUnlocked.map((r) => r.id)];
-    await db.meta.put({ key: "unlockedRewards", value: updated });
-    showToast(`🏆 Unlocked: ${newlyUnlocked.map((r) => r.title).join(", ")}`);
-  } else {
-    showToast(`+${gained} XP`);
+    const gained = xpForCompletion(current);
+    const newXp = xp + gained;
+    await db.meta.put({ key: "xp", value: newXp });
+    await db.xpLog.put({ id: xpLogId, taskId, date: today });
+
+    // check for new rewards
+    const metaRewards = await db.meta.get("unlockedRewards");
+    const alreadyUnlocked: string[] = metaRewards?.value ?? [];
+    const newlyUnlocked = REWARDS.filter(
+      (r) => current >= r.streakRequired && !alreadyUnlocked.includes(r.id)
+    );
+    if (newlyUnlocked.length > 0) {
+      const updated = [...alreadyUnlocked, ...newlyUnlocked.map((r) => r.id)];
+      await db.meta.put({ key: "unlockedRewards", value: updated });
+      showToast(`🏆 Unlocked: ${newlyUnlocked.map((r) => r.title).join(", ")}`);
+    } else {
+      showToast(`+${gained} XP`);
+    }
   }
 
   await loadAll();
@@ -124,6 +131,12 @@ useEffect(() => {
       />
       <button type="submit">Add</button>
     </form>
+    {/* Global heatmap */}
+
+  <div style={{ marginBottom: 20 }}>
+  <div style={{ fontSize: 13, color: "var(--muted)", marginBottom: 6 }}>Activity</div>
+  <Heatmap dates={completions.map((c) => c.date)} />
+  </div>
 
     {/* Task list */}
     <div style={{ marginTop: 16 }}>
@@ -141,7 +154,6 @@ useEffect(() => {
               />
               {t.title} — 🔥 {current} (best {best})
             </label>
-            <Heatmap dates={dates} />
           </div>
         );
       })}
