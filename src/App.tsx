@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { db, type Task, type Completion } from "./lib/db";
 import { newId } from "./lib/id";
 import { computeStreaks, isoToday } from "./lib/streaks";
+import Heatmap from "./components/Heatmap";
 
 export default function App() {
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -57,25 +58,26 @@ export default function App() {
         <button type="submit">Add</button>
       </form>
 
-      <ul style={{ listStyle: "none", padding: 0 }}>
-        {tasks.map((t) => {
-          const dates = completions.filter((c) => c.taskId === t.id).map((c) => c.date);
-          const { current, best } = computeStreaks(dates);
-          const doneToday = dates.includes(isoToday());
-          return (
-            <li key={t.id} style={{ margin: "8px 0" }}>
-              <label>
-                <input
-                  type="checkbox"
-                  checked={doneToday}
-                  onChange={() => toggleToday(t.id)}
-                />
-                {" "}{t.title} — 🔥 {current} (best {best})
-              </label>
-            </li>
-          );
-        })}
-      </ul>
+      <div style={{ marginTop: 16 }}>
+  {tasks.map((t) => {
+    const dates = completions.filter((c) => c.taskId === t.id).map((c) => c.date);
+    const { current, best } = computeStreaks(dates);
+    const doneToday = dates.includes(isoToday());
+    return (
+      <div key={t.id} style={{ marginBottom: 16 }}>
+        <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <input
+            type="checkbox"
+            checked={doneToday}
+            onChange={() => toggleToday(t.id)}
+          />
+          {t.title} — 🔥 {current} (best {best})
+        </label>
+        <Heatmap dates={dates} />
+      </div>
+    );
+  })}
+</div>
     </div>
   );
 }
