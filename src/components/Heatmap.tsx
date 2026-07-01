@@ -45,7 +45,7 @@ export default function Heatmap({ dates }: { dates: string[] }) {
                 width: 11,
                 height: 11,
                 borderRadius: 2,
-                background: day.future ? "transparent" : day.active ? "#39d353" : "#1c2128"
+                background: day.future ? "transparent" : day.active ? "var(--green-hi)" : "var(--surface-2)"
               }}
             />
           ))}
