@@ -13,16 +13,22 @@ export interface Completion {
   taskId: string;
   date: string; // "YYYY-MM-DD"
 }
+export interface Meta {
+  key: string;
+  value: any;
+}
 
 class ZealDB extends Dexie {
   tasks!: Table<Task, string>;
   completions!: Table<Completion, string>;
+  meta!: Table<Meta, string>;
 
   constructor() {
     super("zeal_db");
-    this.version(1).stores({
+    this.version(2).stores({
       tasks: "id, archived",
-      completions: "id, taskId, date"
+      completions: "id, taskId, date",
+      meta: "key",
     });
   }
 }
